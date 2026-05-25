@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#100a0a">
+<title>Canciones para ti — Capítulo II</title>
+ 
+<!--
+  ╔══════════════════════════════════════════════════════╗
+  ║  LIBRO INTERACTIVO DE CANCIONES — CAPÍTULO II        ║
+  ║  Para agregar nuevas canciones, ve a la sección      ║
+  ║  "DATOS DE CANCIONES" en el JavaScript (línea ~580)  ║
+  ╚══════════════════════════════════════════════════════╝
+-->
+ 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,700&family=DM+Mono:wght@300;400&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
+ 
+<style>
+/* ════════════════════════════════════════════
+   VARIABLES & RESET
+════════════════════════════════════════════ */
+:root {
+  --ink:      #100a0a;
+  --smoke:    #1e1212;
+  --wine:     #5c1f2e;
+  --wine-lt:  #7a2d3e;
+  --rose:     #c8847a;
+  --petal:    #e8c4bb;
+  --gold:     #c9a96e;
+  --gold-dim: rgba(201,169,110,0.35);
+  --cream:    #f5f0e8;
+  --cream-dim:rgba(245,240,232,0.55);
+  --paper:    #f0e8d8;
+  --paper-dk: #e0d4be;
+  --border:   rgba(200,132,122,0.18);
+  --shadow:   rgba(0,0,0,0.7);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; overflow:hidden; }
+body {
+  height: 100%;
+  background: var(--ink);
+  font-family: 'DM Mono', monospace;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+ 
+/* ════════════════════════════════════════════
+   FONDO CINEMATOGRÁFICO
+════════════════════════════════════════════ */
+.scene {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+ 
+/* Fondo con textura oscura */
+.scene-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(92,31,46,0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(92,31,46,0.15) 0%, transparent 50%),
+    linear-gradient(160deg, #100a0a 0%, #1a0e0e 50%, #120c0c 100%);
+}
+ 
+/* Partículas de polvo flotante */
+.dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dust-particle {
+  position: absolute;
+  width: 1px; height: 1px;
+  background: rgba(200,132,122,0.4);
+  border-radius: 50%;
+  animation: drift linear infinite;
+}
+@keyframes drift {
+  from { transform: translateY(100vh) translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.3; }
+  to   { transform: translateY(-10vh) translateX(20px); opacity: 0; }
+}
+ 
+/* Luz superior (candelabro) */
+.scene-light {
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(201,169,110,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+ 
+/* ════════════════════════════════════════════
+   PORTADA INICIAL (splash)
+════════════════════════════════════════════ */
+#cover-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: opacity 0.8s ease, visibility 0.8s;
+  padding: 40px 32px;
+  text-align: center;
+  gap: 0;
+}
+#cover-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+ 
+.cover-ornament {
+  font-size: 11px;
+  letter-spacing: 6px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  margin-bottom: 36px;
+  animation: coverFade 1s ease 0.3s both;
+}
+.cover-roman {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: clamp(64px, 22vw, 110px);
+  color: var(--wine);
+  line-height: 1;
+  letter-spacing: -2px;
+  animation: coverFade 1.1s ease 0.5s both;
+  text-shadow: 0 0 60px rgba(92,31,46,0.5);
+}
+.cover-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(18px, 5.5vw, 28px);
+  color: var(--cream);
+  font-weight: 300;
+  letter-spacing: 2px;
+  margin-top: 16px;
+  animation: coverFade 1s ease 0.8s both;
+  line-height: 1.4;
+}
+.cover-line {
+  width: 48px; height: 1px;
+  background: var(--gold-dim);
+  margin: 28px auto;
+  animation: coverFade 0.8s ease 1s both;
+}
+.cover-sub {
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: var(--cream-dim);
+  text-transform: uppercase;
+  animation: coverFade 0.8s ease 1.1s both;
+  margin-bottom: 56px;
+}
+.cover-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 36px;
+  border: 1px solid rgba(200,132,122,0.3);
+  background: transparent;
+  color: var(--cream);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 1px;
+  transition: all 0.4s ease;
+  animation: coverFade 0.9s ease 1.4s both;
+}
+.cover-btn:hover, .cover-btn:active {
+  background: rgba(200,132,122,0.08);
+  border-color: rgba(200,132,122,0.55);
+  letter-spacing: 5px;
+}
+.cover-btn-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--rose);
+  animation: blinkDot 2s ease-in-out 2s infinite;
+}
+@keyframes blinkDot {
+  0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+}
+.cover-footer {
+  position: absolute;
+  bottom: 32px;
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: rgba(245,240,232,0.15);
+  text-transform: uppercase;
+  animation: coverFade 0.8s ease 1.6s both;
+}
+@keyframes coverFade {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+ 
+/* ════════════════════════════════════════════
+   LIBRO — contenedor del flipbook
+════════════════════════════════════════════ */
+#book-container {
+  position: relative;
+  width: min(88vw, 360px);
+  /* La altura la calcula JS según el viewport */
+  perspective: 1200px;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+#book-container.visible { opacity: 1; }
+ 
+/* Sombra bajo el libro */
+#book-container::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 10%;
+  right: 10%;
+  height: 20px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, transparent 70%);
+  pointer-events: none;
+}
+ 
+/* ── PÁGINAS ── */
+.page-wrap {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px 8px 8px 2px;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  will-change: transform;
+}
+ 
+/* Al voltear: rota -180deg */
+.page-wrap.flipped {
+  transform: rotateY(-180deg);
+}
+ 
+/* Cara delantera */
+.page-front, .page-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 2px 8px 8px 2px;
+  overflow: hidden;
+}
+.page-back {
+  transform: rotateY(180deg);
+  border-radius: 8px 2px 2px 8px;
+}
+ 
+/* Textura de papel */
+.paper-texture {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 28px,
+      rgba(100,60,40,0.3) 28px,
+      rgba(100,60,40,0.3) 29px
+    );
+  pointer-events: none;
+}
+ 
+/* Lomo del libro */
+.book-spine {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 8px;
+  background: linear-gradient(to right, rgba(0,0,0,0.5), rgba(92,31,46,0.2), transparent);
+  z-index: 10;
+}
+ 
+/* ════════════════════════════════════════════
+   PÁGINA TIPO — página de canción
+════════════════════════════════════════════ */
+.song-page {
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+ 
+/* Imagen de fondo de la página
+   ▼ Cada canción tiene su propia imagen */
+.song-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 8s ease;
+  transform: scale(1.04);
+}
+.page-wrap:not(.flipped) .song-bg,
+.page-wrap.flipped .page-back .song-bg {
+  transform: scale(1);
+}
+ 
+/* Overlay degradado oscuro sobre la imagen */
+.song-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(16,10,10,0.45) 0%,
+    rgba(16,10,10,0.35) 30%,
+    rgba(16,10,10,0.75) 65%,
+    rgba(16,10,10,0.96) 100%
+  );
+}
+ 
+/* Número de página */
+.page-num {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font-size: 7px;
+  letter-spacing: 3px;
+  color: rgba(245,240,232,0.25);
+  text-transform: uppercase;
+  z-index: 5;
+}
+ 
+/* Marca de agua decorativa */
+.page-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 28vw;
+  color: rgba(200,132,122,0.04);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 1;
+  user-select: none;
+}
+ 
+/* Contenido de la canción */
+.song-content {
+  position: relative;
+  z-index: 5;
+  margin-top: auto;
+  padding: 0 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+ 
+/* Etiqueta superior */
+.song-tag {
+  font-size: 7px;
+  letter-spacing: 5px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.song-tag::before {
+  content: '';
+  display: block;
+  width: 20px; height: 1px;
+  background: var(--gold-dim);
+}
+ 
+/* Nombre de la canción
+   ▼ Cambia en la sección de datos JS */
+.song-name {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: clamp(20px, 6.5vw, 28px);
+  color: var(--cream);
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+ 
+/* Artista */
+.song-artist {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--cream-dim);
+  font-weight: 300;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+ 
+/* ════════════════════════════════════════════
+   REPRODUCTOR DE AUDIO PREMIUM
+════════════════════════════════════════════ */
+.player {
+  background: rgba(16,10,10,0.7);
+  border: 1px solid rgba(200,132,122,0.12);
+  border-radius: 2px;
+  padding: 14px 16px 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-bottom: 16px;
+}
+ 
+/* Waveform decorativa animada */
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 20px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.wave-bar {
+  width: 2px;
+  border-radius: 1px;
+  background: rgba(200,132,122,0.2);
+  flex-shrink: 0;
+  animation: waveIdle 1.4s ease-in-out infinite;
+  transform-origin: bottom;
+}
+.wave-bar.playing {
+  background: var(--rose);
+  animation: wavePulse var(--dur, 1s) ease-in-out infinite;
+}
+@keyframes waveIdle {
+  0%,100% { transform: scaleY(0.3); }
+  50%      { transform: scaleY(0.5); }
+}
+@keyframes wavePulse {
+  0%,100% { transform: scaleY(0.2); }
+  50%      { transform: scaleY(1); }
+}
+ 
+/* Controles */
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+ 
+/* Botón play/pause */
+.play-btn {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,132,122,0.35);
+  background: transparent;
+  color: var(--rose);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.play-btn:active {
+  background: rgba(200,132,122,0.12);
+  transform: scale(0.94);
+}
+.play-btn svg { width: 16px; height: 16px; fill: currentColor; }
+ 
+/* Barra de progreso + tiempo */
+.player-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.progress-wrap {
+  position: relative;
+  height: 2px;
+  background: rgba(200,132,122,0.15);
+  border-radius: 1px;
+  cursor: pointer;
+  touch-action: none;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--wine-lt), var(--rose));
+  border-radius: 1px;
+  width: 0%;
+  transition: width 0.1s linear;
+  position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -4px; top: -3px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--petal);
+  box-shadow: 0 0 6px rgba(200,132,122,0.5);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.progress-wrap:hover .progress-fill::after,
+.progress-wrap:active .progress-fill::after {
+  opacity: 1;
+}
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: rgba(200,132,122,0.4);
+}
+ 
+/* ════════════════════════════════════════════
+   DEDICATORIA
+════════════════════════════════════════════ */
+.dedication {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(13px, 3.8vw, 16px);
+  color: rgba(245,240,232,0.5);
+  line-height: 1.65;
+  font-weight: 300;
+  border-left: 1px solid rgba(200,132,122,0.2);
+  padding-left: 12px;
+}
+ 
+/* ════════════════════════════════════════════
+   NAVEGACIÓN DEL LIBRO
+════════════════════════════════════════════ */
+.nav-bar {
+  position: absolute;
+  bottom: 24px;
+  left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s 0.9s;
+}
+.nav-bar.visible { opacity: 1; pointer-events: all; }
+ 
+.nav-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,132,122,0.2);
+  background: rgba(16,10,10,0.6);
+  backdrop-filter: blur(8px);
+  color: var(--rose);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  touch-action: manipulation;
+}
+.nav-btn:active { transform: scale(0.9); background: rgba(200,132,122,0.1); }
+.nav-btn:disabled { opacity: 0.2; cursor: default; }
+ 
+.nav-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.nav-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(245,240,232,0.2);
+  cursor: pointer;
+  transition: all 0.3s;
+  touch-action: manipulation;
+}
+.nav-dot.active {
+  background: var(--rose);
+  width: 16px;
+  border-radius: 2px;
+}
+ 
+/* ════════════════════════════════════════════
+   INDICADOR SUPERIOR
+════════════════════════════════════════════ */
+.top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.5s 0.9s;
+  pointer-events: none;
+}
+.top-bar.visible { opacity: 1; pointer-events: all; }
+ 
+.top-title {
+  font-size: 7px;
+  letter-spacing: 5px;
+  color: rgba(245,240,232,0.3);
+  text-transform: uppercase;
+}
+.top-page {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(200,132,122,0.4);
+}
+.top-back {
+  background: none;
+  border: none;
+  color: rgba(200,132,122,0.4);
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 8px 0;
+  touch-action: manipulation;
+  transition: color 0.3s;
+}
+.top-back:active { color: var(--rose); }
+ 
+/* ════════════════════════════════════════════
+   STACK DE PÁGINAS (efecto profundidad)
+════════════════════════════════════════════ */
+.pages-stack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.stack-layer {
+  position: absolute;
+  border-radius: 2px 8px 8px 2px;
+  background: var(--paper-dk);
+  border-right: 1px solid rgba(0,0,0,0.2);
+  box-shadow: 2px 0 4px rgba(0,0,0,0.3);
+}
+ 
+/* ════════════════════════════════════════════
+   TRANSICIÓN DE PÁGINA — destello
+════════════════════════════════════════════ */
+.page-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(200,132,122,0.04);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 20;
+  border-radius: 2px 8px 8px 2px;
+  transition: opacity 0.15s;
+}
+.page-flash.flash { opacity: 1; }
+ 
+/* ════════════════════════════════════════════
+   RESPONSIVE AJUSTES
+════════════════════════════════════════════ */
+@media (max-height: 700px) {
+  .song-content { padding: 0 18px 16px; }
+  .player { padding: 10px 14px 10px; }
+  .waveform { height: 14px; margin-bottom: 8px; }
+  .play-btn { width: 32px; height: 32px; }
+  .dedication { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+ 
+<!-- ═══════════════════════════════════════════
+     ESCENA DE FONDO
+═══════════════════════════════════════════ -->
+<div class="scene">
+  <div class="scene-bg"></div>
+  <div class="scene-light"></div>
+  <div class="dust" id="dust"></div>
+ 
+  <!-- ═══════════════════════════════════════
+       PORTADA INICIAL
+  ════════════════════════════════════════ -->
+  <div id="cover-screen">
+    <span class="cover-ornament">Capítulo II · Libro de canciones</span>
+    <div class="cover-roman">II</div>
+    <h1 class="cover-title">Canciones<br>para ti</h1>
+    <div class="cover-line"></div>
+    <p class="cover-sub">Melannie · 2026</p>
+    <button class="cover-btn" id="open-book-btn">
+      <span class="cover-btn-dot"></span>
+      Abrir libro
+    </button>
+    <p class="cover-footer">Toca para comenzar</p>
+  </div>
+ 
+  <!-- ═══════════════════════════════════════
+       LIBRO INTERACTIVO
+  ════════════════════════════════════════ -->
+  <!-- Barra superior -->
+  <div class="top-bar" id="top-bar">
+    <button class="top-back" id="back-btn">← Volver</button>
+    <span class="top-title">Canciones para ti</span>
+    <span class="top-page" id="top-page-num">1 / 1</span>
+  </div>
+ 
+  <!-- Libro -->
+  <div id="book-container">
+    <!-- Las páginas se generan por JavaScript -->
+    <div class="pages-stack" id="pages-stack"></div>
+    <div id="pages-wrapper"></div>
+    <div class="page-flash" id="page-flash"></div>
+  </div>
+ 
+  <!-- Navegación -->
+  <div class="nav-bar" id="nav-bar">
+    <button class="nav-btn" id="prev-btn" disabled>←</button>
+    <div class="nav-dots" id="nav-dots"></div>
+    <button class="nav-btn" id="next-btn">→</button>
+  </div>
+ 
+</div>
+ 
+<script>
+/* ════════════════════════════════════════════════════════════════
+   ██████████████████████████████████████████████████████████████
+   ██                                                          ██
+   ██   DATOS DE CANCIONES — EDITA AQUÍ                       ██
+   ██                                                          ██
+   ██   Para agregar una nueva canción:                        ██
+   ██   1. Copia un objeto { } del array                       ██
+   ██   2. Pégalo al final (antes del ] final)                 ██
+   ██   3. Cambia todos los campos                             ██
+   ██   4. Separa con coma del objeto anterior                 ██
+   ██                                                          ██
+   ██████████████████████████████████████████████████████████████
+════════════════════════════════════════════════════════════════ */
+const SONGS = [
+ 
+  {
+    // ─────────────────────────────────────────
+    // CANCIÓN 1
+    // ─────────────────────────────────────────
+ 
+    // ▼ CAMBIA: URL de la imagen de fondo de esta página
+    //   Recomendado: foto tuya, de los dos, o paisaje romántico
+    image: 'https://i.imgur.com/HWHNM4S.jpeg',
+ 
+    // ▼ CAMBIA: Nombre de la canción (aparece en grande)
+    songName: 'Nombre de la canción',
+ 
+    // ▼ CAMBIA: Nombre del artista/banda
+    artist: 'Artista',
+ 
+    // ▼ CAMBIA: URL del archivo de audio (.mp3, .ogg, etc.)
+    //   Puedes usar Google Drive, Dropbox, o cualquier host
+    //   Formato Drive: https://drive.google.com/uc?export=download&id=ID_DEL_ARCHIVO
+    audio: 'https://drive.google.com/uc?export=download&id=1Q-R9Ub7c7EloDdxHj3P8qSGzh__n0C5l',
+ 
+    // ▼ CAMBIA: Texto de dedicatoria (aparece abajo en cursiva)
+    dedication: 'Te la dedico porque desde que llegaste, todo empezó a sentirse diferente. Esta canción suena exactamente a lo que me haces sentir.',
+ 
+    // ▼ CAMBIA: Etiqueta pequeña arriba (número, fecha, lo que quieras)
+    label: 'Canción 01',
+  },
+ 
+  {
+    // ─────────────────────────────────────────
+    // CANCIÓN 2
+    // ─────────────────────────────────────────
+ 
+    // ▼ CAMBIA: imagen de fondo
+    image: 'https://i.imgur.com/GzaX8eu.jpeg',
+ 
+    // ▼ CAMBIA: nombre de la canción
+    songName: 'Otra canción',
+ 
+    // ▼ CAMBIA: artista
+    artist: 'Artista',
+ 
+    // ▼ CAMBIA: URL del audio
+    audio: 'https://drive.google.com/uc?export=download&id=1Q-R9Ub7c7EloDdxHj3P8qSGzh__n0C5l',
+ 
+    // ▼ CAMBIA: dedicatoria
+    dedication: 'Cada vez que la escucho pienso en ti. En tu risa, en cómo me miras, en todo lo que no necesito decir porque tú ya lo entiendes.',
+ 
+    // ▼ CAMBIA: etiqueta
+    label: 'Canción 02',
+  },
+ 
+  {
+    // ─────────────────────────────────────────
+    // CANCIÓN 3
+    // ─────────────────────────────────────────
+ 
+    // ▼ CAMBIA: imagen de fondo
+    image: 'https://i.imgur.com/rajxcrq.jpeg',
+ 
+    // ▼ CAMBIA: nombre de la canción
+    songName: 'Una más para ti',
+ 
+    // ▼ CAMBIA: artista
+    artist: 'Artista',
+ 
+    // ▼ CAMBIA: URL del audio
+    audio: 'https://drive.google.com/uc?export=download&id=1Q-R9Ub7c7EloDdxHj3P8qSGzh__n0C5l',
+ 
+    // ▼ CAMBIA: dedicatoria
+    dedication: 'Hay canciones que no escuchas, las sientes. Esta es una de ellas. Y desde que estás tú, la siento el doble.',
+ 
+    // ▼ CAMBIA: etiqueta
+    label: 'Canción 03',
+  },
+ 
+  /* ══════════════════════════════════════════════════════
+     ▼▼▼ AGREGA MÁS CANCIONES AQUÍ ▼▼▼
+     Copia el bloque de arriba (desde la primera { hasta }
+     incluyendo la coma final) y pégalo aquí.
+     Cambia todos los campos y listo.
+  ══════════════════════════════════════════════════════ */
+ 
+];
+/* ════════════════════════════════════════════════════
+   FIN DE DATOS — no edites debajo de esta línea
+   a menos que sepas lo que haces
+════════════════════════════════════════════════════ */
+ 
+ 
+/* ──────────────────────────────────────────
+   PARTÍCULAS DE POLVO
+────────────────────────────────────────── */
+const dustEl = document.getElementById('dust');
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement('div');
+  p.className = 'dust-particle';
+  p.style.cssText = `
+    left: ${Math.random() * 100}%;
+    width: ${Math.random() * 1.5 + 0.5}px;
+    height: ${Math.random() * 1.5 + 0.5}px;
+    opacity: ${Math.random() * 0.4 + 0.1};
+    animation-duration: ${8 + Math.random() * 14}s;
+    animation-delay: -${Math.random() * 14}s;
+  `;
+  dustEl.appendChild(p);
+}
+ 
+/* ──────────────────────────────────────────
+   ESTADO GLOBAL
+────────────────────────────────────────── */
+let currentPage  = 0;
+let totalPages   = SONGS.length;
+let isAnimating  = false;
+let audioObjects = [];  // instancias de Audio por canción
+let playStates   = [];  // true/false por canción
+ 
+/* ──────────────────────────────────────────
+   CALCULAR TAMAÑO DEL LIBRO
+────────────────────────────────────────── */
+function getBookSize() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const topBarH   = 56;
+  const navBarH   = 80;
+  const padding   = 32;
+  const available = vh - topBarH - navBarH - padding;
+  const w = Math.min(vw * 0.88, 360);
+  const h = Math.min(available, w * 1.38);
+  return { w, h };
+}
+ 
+/* ──────────────────────────────────────────
+   CONSTRUIR PÁGINAS
+────────────────────────────────────────── */
+function buildPages() {
+  const wrapper = document.getElementById('pages-wrapper');
+  const stack   = document.getElementById('pages-stack');
+  const { w, h } = getBookSize();
+ 
+  const container = document.getElementById('book-container');
+  container.style.width  = w + 'px';
+  container.style.height = h + 'px';
+ 
+  wrapper.innerHTML = '';
+  stack.innerHTML   = '';
+ 
+  // Capas de profundidad (páginas debajo)
+  for (let i = 3; i >= 1; i--) {
+    const sl = document.createElement('div');
+    sl.className = 'stack-layer';
+    sl.style.cssText = `
+      top: ${i*1.5}px; bottom: -${i*1.5}px;
+      left: ${i*2}px;  right: -${i*2}px;
+      opacity: ${0.35 - i*0.07};
+    `;
+    stack.appendChild(sl);
+  }
+ 
+  // Crear páginas (de atrás hacia adelante)
+  SONGS.forEach((song, idx) => {
+    audioObjects[idx] = new Audio();
+    audioObjects[idx].preload = 'metadata';
+    playStates[idx] = false;
+ 
+    const wrap = document.createElement('div');
+    wrap.className = 'page-wrap';
+    wrap.id = `page-${idx}`;
+    wrap.style.zIndex = totalPages - idx;
+ 
+    /* ── CARA DELANTERA ── */
+    const front = document.createElement('div');
+    front.className = 'page-front';
+    front.innerHTML = buildPageHTML(song, idx, 'front');
+ 
+    /* ── CARA TRASERA (reverso) ── */
+    const back = document.createElement('div');
+    back.className = 'page-back';
+    // El reverso muestra la siguiente canción o está vacío si es la última
+    const nextSong = SONGS[idx + 1];
+    if (nextSong) {
+      back.innerHTML = buildPageHTML(nextSong, idx + 1, 'back');
+    } else {
+      back.innerHTML = buildEndHTML();
+    }
+ 
+    wrap.appendChild(front);
+    wrap.appendChild(back);
+    wrapper.appendChild(wrap);
+  });
+ 
+  // Posicionar páginas (apiladas)
+  updatePagePositions();
+ 
+  // Inicializar waveforms y controles
+  SONGS.forEach((_, idx) => setupAudio(idx));
+ 
+  // Dots de navegación
+  buildNavDots();
+  updateNav();
+ 
+  // Tamaño del texto de página
+  document.getElementById('top-page-num').textContent = `1 / ${totalPages}`;
+}
+ 
+/* ──────────────────────────────────────────
+   HTML DE CADA PÁGINA
+────────────────────────────────────────── */
+function buildPageHTML(song, idx, face) {
+  const waveId    = `wave-${idx}-${face}`;
+  const playId    = `play-${idx}-${face}`;
+  const progWrapId= `prog-wrap-${idx}-${face}`;
+  const progFillId= `prog-fill-${idx}-${face}`;
+  const currTimeId= `curr-${idx}-${face}`;
+  const durId     = `dur-${idx}-${face}`;
+ 
+  // Generar barras de waveform
+  const bars = Array.from({length: 32}, (_, i) => {
+    const h = 20 + Math.random() * 80;
+    const dur = (0.6 + Math.random() * 0.9).toFixed(2);
+    const del = (i * 0.04).toFixed(2);
+    return `<div class="wave-bar" style="height:${h}%;--dur:${dur}s;animation-delay:-${del}s"></div>`;
+  }).join('');
+ 
+  return `
+    <div class="song-page">
+      <!-- ▼ Imagen de fondo -->
+      <div class="song-bg" style="background-image:url('${song.image}')"></div>
+      <div class="song-overlay"></div>
+      <div class="paper-texture"></div>
+      <div class="book-spine"></div>
+      <div class="page-watermark">♡</div>
+      <span class="page-num">${String(idx + 1).padStart(2,'0')}</span>
+ 
+      <div class="song-content">
+        <!-- Etiqueta -->
+        <span class="song-tag">${song.label}</span>
+ 
+        <!-- ▼ Nombre de la canción -->
+        <h2 class="song-name">${song.songName}</h2>
+ 
+        <!-- ▼ Artista -->
+        <p class="song-artist">${song.artist}</p>
+ 
+        <!-- REPRODUCTOR -->
+        <div class="player">
+          <!-- Waveform animada -->
+          <div class="waveform" id="${waveId}">${bars}</div>
+ 
+          <div class="player-controls">
+            <!-- Botón play/pause -->
+            <button class="play-btn" id="${playId}" data-idx="${idx}">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+ 
+            <div class="player-right">
+              <!-- Barra de progreso -->
+              <div class="progress-wrap" id="${progWrapId}" data-idx="${idx}">
+                <div class="progress-fill" id="${progFillId}"></div>
+              </div>
+              <!-- Tiempo -->
+              <div class="time-row">
+                <span id="${currTimeId}">0:00</span>
+                <span id="${durId}">—:——</span>
+              </div>
+            </div>
+          </div>
+        </div>
+ 
+        <!-- ▼ Dedicatoria -->
+        <p class="dedication">${song.dedication}</p>
+      </div>
+    </div>
+  `;
+}
+ 
+function buildEndHTML() {
+  return `
+    <div class="song-page" style="background:var(--smoke)">
+      <div class="paper-texture"></div>
+      <div class="book-spine"></div>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:16px">
+        <span style="font-family:'Playfair Display',serif;font-style:italic;font-size:56px;color:rgba(200,132,122,0.15)">♡</span>
+        <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:22px;color:var(--cream);line-height:1.2">Fin del<br>capítulo II</p>
+        <div style="width:32px;height:1px;background:var(--gold-dim)"></div>
+        <p style="font-size:8px;letter-spacing:4px;color:var(--cream-dim);text-transform:uppercase">Más por venir...</p>
+      </div>
+    </div>
+  `;
+}
+ 
+/* ──────────────────────────────────────────
+   SETUP DE AUDIO POR CANCIÓN
+────────────────────────────────────────── */
+function setupAudio(idx) {
+  const song = SONGS[idx];
+  // Conectar audio para ambas instancias (front y back de cada cara)
+  ['front', 'back'].forEach(face => {
+    const playBtn   = document.getElementById(`play-${idx}-${face}`);
+    const progWrap  = document.getElementById(`prog-wrap-${idx}-${face}`);
+    const progFill  = document.getElementById(`prog-fill-${idx}-${face}`);
+    const currTime  = document.getElementById(`curr-${idx}-${face}`);
+    const durEl     = document.getElementById(`dur-${idx}-${face}`);
+    const waveEl    = document.getElementById(`wave-${idx}-${face}`);
+ 
+    if (!playBtn) return;
+ 
+    // Cargar audio
+    if (face === 'front') {
+      audioObjects[idx].src = song.audio;
+    }
+ 
+    const aud = audioObjects[idx];
+ 
+    // Duración
+    aud.addEventListener('loadedmetadata', () => {
+      if (durEl) durEl.textContent = fmtTime(aud.duration);
+    });
+ 
+    // Progreso
+    aud.addEventListener('timeupdate', () => {
+      if (!aud.duration) return;
+      const pct = (aud.currentTime / aud.duration) * 100;
+      document.querySelectorAll(`[id^="prog-fill-${idx}-"]`).forEach(el => {
+        el.style.width = pct + '%';
+      });
+      document.querySelectorAll(`[id^="curr-${idx}-"]`).forEach(el => {
+        el.textContent = fmtTime(aud.currentTime);
+      });
+    });
+ 
+    // Fin
+    aud.addEventListener('ended', () => {
+      playStates[idx] = false;
+      updatePlayBtn(idx);
+      updateWave(idx, false);
+      document.querySelectorAll(`[id^="prog-fill-${idx}-"]`).forEach(el => el.style.width = '0%');
+      document.querySelectorAll(`[id^="curr-${idx}-"]`).forEach(el => el.textContent = '0:00');
+    });
+ 
+    // Play / Pause
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePlay(idx);
+    });
+ 
+    // Seek en barra de progreso
+    if (progWrap) {
+      progWrap.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!aud.duration) return;
+        const rect = progWrap.getBoundingClientRect();
+        const pct  = (e.clientX - rect.left) / rect.width;
+        aud.currentTime = pct * aud.duration;
+      });
+ 
+      // Touch seek
+      progWrap.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+      }, { passive: true });
+      progWrap.addEventListener('touchend', (e) => {
+        e.stopPropagation();
+        if (!aud.duration) return;
+        const t    = e.changedTouches[0];
+        const rect = progWrap.getBoundingClientRect();
+        const pct  = Math.max(0, Math.min(1, (t.clientX - rect.left) / rect.width));
+        aud.currentTime = pct * aud.duration;
+      }, { passive: true });
+    }
+  });
+}
+ 
+function togglePlay(idx) {
+  const aud = audioObjects[idx];
+  if (!aud) return;
+ 
+  // Pausar todos los demás
+  audioObjects.forEach((a, i) => {
+    if (i !== idx && !a.paused) {
+      a.pause();
+      playStates[i] = false;
+      updatePlayBtn(i);
+      updateWave(i, false);
+    }
+  });
+ 
+  if (playStates[idx]) {
+    aud.pause();
+    playStates[idx] = false;
+  } else {
+    aud.play().catch(() => {});
+    playStates[idx] = true;
+  }
+  updatePlayBtn(idx);
+  updateWave(idx, playStates[idx]);
+}
+ 
+function updatePlayBtn(idx) {
+  const playing = playStates[idx];
+  const icon = playing
+    ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
+    : '<path d="M8 5v14l11-7z"/>';
+  document.querySelectorAll(`[id^="play-${idx}-"]`).forEach(btn => {
+    btn.innerHTML = `<svg viewBox="0 0 24 24">${icon}</svg>`;
+  });
+}
+ 
+function updateWave(idx, isPlaying) {
+  document.querySelectorAll(`[id^="wave-${idx}-"] .wave-bar`).forEach(bar => {
+    bar.classList.toggle('playing', isPlaying);
+  });
+}
+ 
+function fmtTime(s) {
+  if (isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const ss = Math.floor(s % 60);
+  return `${m}:${String(ss).padStart(2,'0')}`;
+}
+ 
+/* ──────────────────────────────────────────
+   POSICIONAMIENTO DE PÁGINAS
+────────────────────────────────────────── */
+function updatePagePositions() {
+  const pages = document.querySelectorAll('.page-wrap');
+  pages.forEach((page, idx) => {
+    if (idx < currentPage) {
+      // Ya pasada: volteada y debajo
+      page.style.transform = 'rotateY(-180deg)';
+      page.style.zIndex = idx;
+    } else if (idx === currentPage) {
+      // Actual: visible arriba
+      page.style.transform = 'rotateY(0deg)';
+      page.style.zIndex = totalPages - idx;
+    } else {
+      // Pendiente: apilada detrás
+      page.style.transform = 'rotateY(0deg)';
+      page.style.zIndex = totalPages - idx;
+    }
+  });
+}
+ 
+/* ──────────────────────────────────────────
+   NAVEGACIÓN
+────────────────────────────────────────── */
+function goNext() {
+  if (isAnimating || currentPage >= totalPages - 1) return;
+  isAnimating = true;
+ 
+  // Detener audio de la página actual
+  pausePageAudio(currentPage);
+ 
+  flashEffect();
+ 
+  const page = document.getElementById(`page-${currentPage}`);
+  page.style.transition = 'transform 0.65s cubic-bezier(0.4, 0, 0.2, 1)';
+  page.style.transform  = 'rotateY(-180deg)';
+  page.style.zIndex = currentPage;
+ 
+  currentPage++;
+  updateNav();
+ 
+  setTimeout(() => {
+    updatePagePositions();
+    isAnimating = false;
+  }, 680);
+}
+ 
+function goPrev() {
+  if (isAnimating || currentPage <= 0) return;
+  isAnimating = true;
+ 
+  pausePageAudio(currentPage);
+ 
+  flashEffect();
+  currentPage--;
+ 
+  const page = document.getElementById(`page-${currentPage}`);
+  page.style.transition = 'transform 0.65s cubic-bezier(0.4, 0, 0.2, 1)';
+  page.style.transform  = 'rotateY(0deg)';
+  page.style.zIndex = totalPages - currentPage;
+ 
+  updateNav();
+ 
+  setTimeout(() => {
+    updatePagePositions();
+    isAnimating = false;
+  }, 680);
+}
+ 
+function goToPage(idx) {
+  if (isAnimating || idx === currentPage) return;
+  const dir = idx > currentPage ? 'next' : 'prev';
+  const steps = Math.abs(idx - currentPage);
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i >= steps) { clearInterval(interval); return; }
+    dir === 'next' ? goNext() : goPrev();
+    i++;
+  }, 150);
+}
+ 
+function pausePageAudio(idx) {
+  if (audioObjects[idx] && !audioObjects[idx].paused) {
+    audioObjects[idx].pause();
+    playStates[idx] = false;
+    updatePlayBtn(idx);
+    updateWave(idx, false);
+  }
+}
+ 
+function flashEffect() {
+  const fl = document.getElementById('page-flash');
+  fl.classList.add('flash');
+  setTimeout(() => fl.classList.remove('flash'), 200);
+}
+ 
+/* ──────────────────────────────────────────
+   UI — DOTS Y BOTONES
+────────────────────────────────────────── */
+function buildNavDots() {
+  const dotsEl = document.getElementById('nav-dots');
+  dotsEl.innerHTML = '';
+  SONGS.forEach((_, idx) => {
+    const d = document.createElement('div');
+    d.className = 'nav-dot' + (idx === 0 ? ' active' : '');
+    d.addEventListener('click', () => goToPage(idx));
+    dotsEl.appendChild(d);
+  });
+}
+ 
+function updateNav() {
+  // Dots
+  document.querySelectorAll('.nav-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === currentPage);
+  });
+  // Botones
+  document.getElementById('prev-btn').disabled = currentPage <= 0;
+  document.getElementById('next-btn').disabled = currentPage >= totalPages - 1;
+  // Número
+  document.getElementById('top-page-num').textContent = `${currentPage + 1} / ${totalPages}`;
+}
+ 
+/* ──────────────────────────────────────────
+   SWIPE TÁCTIL
+────────────────────────────────────────── */
+let touchStartX = 0;
+let touchStartY = 0;
+ 
+document.getElementById('book-container').addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+ 
+document.getElementById('book-container').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+    dx < 0 ? goNext() : goPrev();
+  }
+}, { passive: true });
+ 
+/* ──────────────────────────────────────────
+   TECLADO (desktop)
+────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') goNext();
+  if (e.key === 'ArrowLeft')  goPrev();
+});
+ 
+/* ──────────────────────────────────────────
+   BOTONES DE NAV
+────────────────────────────────────────── */
+document.getElementById('prev-btn').addEventListener('click', goPrev);
+document.getElementById('next-btn').addEventListener('click', goNext);
+ 
+/* ──────────────────────────────────────────
+   ABRIR LIBRO (desde portada)
+────────────────────────────────────────── */
+document.getElementById('open-book-btn').addEventListener('click', openBook);
+ 
+function openBook() {
+  const cover  = document.getElementById('cover-screen');
+  const bookEl = document.getElementById('book-container');
+  const topBar = document.getElementById('top-bar');
+  const navBar = document.getElementById('nav-bar');
+ 
+  cover.classList.add('hidden');
+ 
+  setTimeout(() => {
+    buildPages();
+    bookEl.classList.add('visible');
+    topBar.classList.add('visible');
+    navBar.classList.add('visible');
+  }, 600);
+}
+ 
+/* ──────────────────────────────────────────
+   VOLVER A LA PORTADA
+────────────────────────────────────────── */
+document.getElementById('back-btn').addEventListener('click', () => {
+  audioObjects.forEach((a, i) => {
+    a.pause(); a.currentTime = 0;
+    playStates[i] = false;
+  });
+ 
+  const cover  = document.getElementById('cover-screen');
+  const bookEl = document.getElementById('book-container');
+  const topBar = document.getElementById('top-bar');
+  const navBar = document.getElementById('nav-bar');
+ 
+  bookEl.classList.remove('visible');
+  topBar.classList.remove('visible');
+  navBar.classList.remove('visible');
+ 
+  setTimeout(() => {
+    cover.classList.remove('hidden');
+    currentPage = 0;
+  }, 500);
+});
+ 
+/* ──────────────────────────────────────────
+   RESIZE
+────────────────────────────────────────── */
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (document.getElementById('book-container').classList.contains('visible')) {
+      buildPages();
+    }
+  }, 300);
+});
+</script>
+</body>
+</html>
+ 
